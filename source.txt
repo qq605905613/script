@@ -1,0 +1,582 @@
+// resolution = 1920x1080
+Dim forwardX, forwardY
+Dim backwardX, backwardY
+Dim spaceX, spaceY
+//Screen resolution=1920x1080
+forwardX=1800
+forwardY=1040
+backwardX=160
+backwardY=1040
+spaceX=1750
+spaceY=760
+
+Dim fightX, fightY, bossX, bossY
+
+Function WaitForLoading
+    Dim msgX, msgY
+    msgX=-1
+    msgY=-1
+    While msgX=-1 And msgY=-1
+        FindPic 0, 0, 0, 0, "Attachment:msg.png", "000000", 0, 0.8, msgX, msgY
+        Tap spaceX, spaceY
+    Wend
+    While msgX>-1 And msgY>-1
+        FindPic 0, 0, 0, 0, "Attachment:msg.png", "000000", 0, 0.8, msgX, msgY
+    Wend
+End Function
+
+Function EnterFight
+    Dim prepX, prepY
+    prepX=-1
+    prepY=-1
+    While prepX=-1 And prepY=-1
+        FindPic 0, 0, 0, 0, "Attachment:ready.png", "000000", 0, 0.8, prepX, prepY
+        FindPic 0, 0, 0, 0, "Attachment:fight.png", "000000", 0, 0.8, fightX, fightY
+        If fightX>-1 And fightY>-1 Then
+            Tap fightX, fightY
+        End If
+        If LowEnergy() Then 
+            TracePrint "Low energy, delay 2 hours"
+            Delay 7200000
+        End If
+    Wend
+    Tap prepX, prepY
+    WaitForLoading
+End Function
+
+Function LowEnergy
+    Dim leX, leY
+    Delay 1500
+    FindPic 0, 0, 0, 0, "Attachment:lowenergy.png", "000000", 0, 0.8, leX, leY
+    If leX>-1 And leY>-1 Then
+        Dim crossX, crossY
+        crossX = -1
+        crossY = -1
+        While crossX=-1
+            FindPic 0, 0, 0, 0, "Attachment:cross1.png", "000000", 0, 0.9, crossX, crossY
+            Tap crossX, crossY
+        Wend
+        LowEnergy=True
+    Else
+        LowEnergy=False
+    End If
+End Function
+
+Function ExploreCopy(chapn)
+    Dim chapnX, chapnY
+    Dim exploreX, exploreY
+    Dim boss
+    boss = False
+    exploreX=-1
+    exploreY=-1
+    chapnX = -1
+    chapnY = -1
+    Dim fileName
+    fileName = "Attachment:chap" & CStr(chapn) & ".png"
+    While chapnX=-1
+        FindPic 0, 0, 0, 0, fileName, "000000", 0, 0.8, chapnX, chapnY
+        While chapnX < 0
+        	FindPic 0, 0, 0, 0, fileName, "000000", 0, 0.8, chapnX, chapnY
+        Wend
+        Tap chapnX, chapnY
+        FindPic 0, 0, 0, 0, "Attachment:explore.png", "000000", 0, 0.8, exploreX, exploreY
+        If exploreX > -1 Then 
+            Tap exploreX, exploreY
+            chapnX = 0
+        End If
+    Wend
+    While exploreX=-1 And exploreY=-1
+        FindPic 0, 0, 0, 0, "Attachment:explore.png", "000000", 0, 0.8, exploreX, exploreY
+    Wend
+    Tap exploreX, exploreY
+    WaitForLoading
+    //explore
+    Rem Redo:
+    Dim forwardcnt, backwardcnt
+    Dim upperlimit
+    upperlimit=10
+    forwardcnt=0
+    backwardcnt=0
+    fightX=1
+    fightY = 1
+    While forwardcnt<upperlimit Or backwardcnt<upperlimit
+        While fightX>-1 And fightY>-1
+            FindPic 0, 0, 0, 0, "Attachment:bossfight.png", "000000", 0, 0.8, bossX, bossY
+            FindPic 0, 0, 0, 0, "Attachment:fight.png", "000000", 0, 0.8, fightX, fightY
+            If bossX > -1 And bossY > -1 Then
+                Tap bossX, bossY
+                boss = True
+                EnterFight
+                Delay 10000
+                Dim boxX, boxY
+                boxX=1
+                boxY=1
+                While boxX>-1 And boxY>-1
+                    FindPic 0, 0, 0, 0, "Attachment:box.png", "000000", 0, 0.8, boxX, boxY
+                    Tap boxX, boxY
+                    Delay 2000
+                    Tap spaceX, spaceY
+                    Delay 2000
+                    FindPic 0, 0, 0, 0, "Attachment:box.png", "000000", 0, 0.8, boxX, boxY
+                Wend
+                FindPic 0, 0, 0, 0, "Attachment:bossfight.png", "000000", 0, 0.8, bossX, bossY
+                If bossX>-1 And bossY>-1 Then
+                    Goto Redo
+                End If
+                Goto RoundEnd
+            ElseIf fightX>-1 And fightY>-1 Then
+                Tap fightX, fightY
+                Delay 1000
+                EnterFight
+            End If
+        Wend
+        If forwardcnt<10 Then
+            Tap forwardX, forwardY
+            forwardcnt=forwardcnt+1
+        Else
+            Tap backwardX, backwardY
+            backwardcnt=backwardcnt+1
+        End If
+        fightX=1
+        fightY=1
+        Delay 2000
+    Wend
+    Rem RoundEnd:
+    Dim treasureX, treasureY
+    If boss = False Then 
+    	Goto Redo
+    End If
+    Delay 5000
+    FindPic 0, 0, 0, 0, "Attachment:treasure.png", "000000", 0, 0.9, treasureX, treasureY
+    If treasureX>-1 Then
+        Tap treasureX, treasureY
+        Tap spaceX, spaceY
+    End If
+    Delay 5000
+    Dim x_sc, y_sc
+    FindPic 0, 0, 0, 0, "Attachment:small_cross.png", "000000", 0, 0.8, x_sc, y_sc
+    If x_sc > -1 Then 
+    	Tap x_sc, y_sc
+    End If
+End Function
+
+Function TeamWake
+    Dim x_space=1750
+    Dim y_space=760
+    Dim x_floor, y_floor
+    Dim x_wake, y_wake, x_type, y_type, x_start, y_start
+    x_type = -1
+    x_wake = -1
+    While x_wake = -1
+        FindPic 0, 0, 0, 0, "Attachment:wake.png", "000000", 0, 0.9, x_wake, y_wake
+    Wend
+    Tap x_wake, y_wake
+    While x_type = -1
+        FindPic 0, 0, 0, 0, "Attachment:type4.png", "000000", 0, 0.8, x_type, y_type
+    Wend
+    Tap x_type, y_type
+    x_floor = -1
+    While x_floor=-1
+        FindPic 0, 0, 0, 0, "Attachment:eight.png", "000000", 0, 0.8, x_floor, y_floor //8th floor
+    Wend
+    Tap x_floor, y_floor
+    Dim x_team, y_team, x_ct, y_ct, x_create, y_create
+    x_create = -1
+    x_ct = -1
+    x_team = -1
+    While x_team = -1
+        FindPic 0, 0, 0, 0, "Attachment:team.png", "000000", 0, 0.9, x_team, y_team
+    Wend
+    Tap x_team, y_team
+    Rem CreateTeam1:
+    While x_ct = -1
+        FindPic 0, 0, 0, 0, "Attachment:createteam.png", "000000", 0, 0.9, x_ct, y_ct
+    Wend
+    Tap x_ct, y_ct
+    Delay 2000
+    While x_create = -1
+        FindPic 0, 0, 0, 0, "Attachment:create.png", "000000", 0, 0.8, x_create, y_create
+        x_create = 1300
+        y_create = 890
+    Wend
+    Delay 500
+    Tap x_create, y_create
+    Tap x_create, y_create
+    x_start = -1
+    While x_start = -1
+        FindPic 0, 0, 0, 0, "Attachment:start.png", "000000", 3, 0.8, x_start, y_start
+        FindPic 0, 0, 0, 0, "Attachment:createteam.png", "000000", 3, 0.8, x_ct, y_ct
+        If x_ct > -1 Then 
+        	Goto CreateTeam1
+        End If
+    Wend
+    Tap x_start, y_start
+    Dim x_cancel, y_cancel
+    x_cancel = -1·
+        Tap x_space, y_space
+        FindPic 0, 0, 0, 0, "Attachment:cancel.png", "000000", 0, 0.9, x_cancel, y_cancel
+        FindPic 0, 0, 0, 0, "Attachment:start.png", "000000", 3, 0.8, x_start, y_start
+        If x_start > -1 Then 
+            Tap x_start, y_start
+        End If
+        Dim x_crt, y_crt
+        FindPic 0, 0, 0, 0, "Attachment:createteam.png", "000000", 0, 0.9, x_crt, y_crt
+        If x_crt > -1 Then 
+        	Goto CreateTeam1
+        End If
+    Wend
+    Tap x_cancel, y_cancel
+End Function
+
+Function TeamGotamasii
+    Dim x_space=1750
+    Dim y_space=760
+    Dim x_floor, y_floor
+    Dim x_wake, y_wake, x_type, y_type, x_start, y_start
+    x_type = -1
+    x_wake = -1
+    While x_wake = -1
+        FindPic 0, 0, 0, 0, "Attachment:sp.png", "000000", 0, 0.9, x_wake, y_wake
+    Wend
+    Tap x_wake, y_wake
+    While x_type = -1
+        FindPic 0, 0, 0, 0, "Attachment:snake.png", "000000", 0, 0.9, x_type, y_type
+    Wend
+    Tap x_type, y_type
+    x_floor = -1
+    While x_floor=-1
+        FindPic 0, 0, 0, 0, "Attachment:eight.png", "000000", 0, 0.8, x_floor, y_floor
+    Wend
+    Tap x_floor, y_floor
+    Dim x_team, y_team, x_ct, y_ct, x_create, y_create
+    x_create = -1
+    x_ct = -1
+    x_team = -1
+    While x_team = -1
+        FindPic 0, 0, 0, 0, "Attachment:team.png", "000000", 0, 0.9, x_team, y_team
+    Wend
+    Tap x_team, y_team
+    Rem CreateTeam:
+    While x_ct = -1
+        FindPic 0, 0, 0, 0, "Attachment:createteam.png", "000000", 0, 0.9, x_ct, y_ct
+    Wend
+    Tap x_ct, y_ct
+    Delay 2000
+    While x_create = -1
+        FindPic 0, 0, 0, 0, "Attachment:create.png", "000000", 0, 0.9, x_create, y_create
+        x_create = 1300
+        y_create = 890
+    Wend
+    Delay 500
+    Tap x_create, y_create
+    Tap x_create, y_create
+    x_start = -1
+    While x_start = -1
+        FindPic 0, 0, 0, 0, "Attachment:start.png", "000000", 2, 0.8, x_start, y_start
+        FindPic 0, 0, 0, 0, "Attachment:createteam.png", "000000", 3, 0.8, x_ct, y_ct
+        If x_ct > -1 Then 
+        	Goto CreateTeam
+        End If
+    Wend
+    Tap x_start, y_start
+    Dim x_cancel, y_cancel
+    x_cancel = -1
+    While x_cancel = -1
+        Tap x_space, y_space
+        FindPic 0, 0, 0, 0, "Attachment:cancel.png", "000000", 1, 0.9, x_cancel, y_cancel
+        FindPic 0, 0, 0, 0, "Attachment:start.png", "000000", 2, 0.8, x_start, y_start
+        If x_start > -1 Then 
+            Tap x_start, y_start
+        End If
+        Dim x_crt, y_crt
+        FindPic 0, 0, 0, 0, "Attachment:createteam.png", "000000", 0, 0.9, x_crt, y_crt
+        If x_crt > -1 Then 
+        	Goto CreateTeam
+        End If
+    Wend
+    Tap x_cancel, y_cancel
+End Function
+
+Function kekkai
+	Dim x_base, y_base, x_step, y_step, spaceX, spaceY
+	x_base = 450
+	y_base = 240
+	x_step = 520
+	y_step = 200
+	spaceX = 1700
+	spaceY = 900
+	Dim x, y, x_break, y_break, x_attack, y_attack
+	x_break = -1
+	If x_break = -1 Then
+        FindPic 0, 0, 0, 0, "Attachment:break.png", "000000", 0, 0.8, x_break, y_break
+    End If
+    Tap x_break, y_break
+    Delay 5000
+    Tap 1500, 800 //refresh
+    Delay 1000
+    Tap 1050, 650 //confirm
+    For i = 0 To 2
+        For j = 0 To 2
+            If x_break = -1 Then
+                FindPic 0, 0, 0, 0, "Attachment:break.png", "000000", 0, 0.8, x_break, y_break
+            End If
+            Tap x_break, y_break
+            x_break = -1
+            Delay 5000
+            x = x_base + i * x_step
+            y = y_base + j * y_step
+            Tap x, y
+            Delay 1000
+            FindPic 0, 0, 0, 0, "Attachment:attack.png", "000000", 0, 0.75, x_attack, y_attack
+            If x_attack > -1 Then 
+                Tap x_attack, y_attack
+                Dim x_dl, y_dl
+                x_dl = -1
+                While x_dl = -1
+                    FindPic 0, 0, 0, 0, "Attachment:defend_log.png", "000000", 0, 0.8, x_dl, y_dl
+                    Delay 50
+                    Tap spaceX, spaceY
+                Wend
+            End If
+        Next
+    Next
+	Tap 1920 - 1, 1080 - 1
+	Delay 1000
+	Tap 1920 - 1, 1080 - 1
+End Function
+
+//////////////////////////////
+Function Yard2Explore
+    Tap 1920 - 1, 1080 - 1
+    Dim screenX, screenY
+    Dim elantX, elantY
+    Dim gobackX, gobackY
+    Dim fsX, fsY
+    fsX = 676
+    fsY = 272
+    screenX=1920
+    screenY=1080
+    elantX=770
+    elantY=246
+    gobackX=84
+    gobackY = 88
+
+    Tap screenX-2, screenY-2
+    Delay 2000
+    Tap elantX, elantY
+    Delay 5000
+End Function
+
+Function Yard2Machi
+    Tap 1920 - 1, 1080 - 1
+    Delay 5000
+    Tap 880, 420
+    Delay 5000
+End Function
+
+Function Machi2Yard
+    Tap 1920 - 1, 1080 - 1
+    Delay 5000
+    Tap 1580, 390
+    Delay 5000
+End Function
+
+Function Hyakki
+    Tap 1080, 260
+    Delay 5000
+    Tap 1430, 800
+    Delay 5000
+    Tap 970, 700
+    Delay 5000
+    Tap 1770, 930
+    Delay 9000
+    Dim count_start, count_end
+    count_start = Time()
+    count_end = Time()
+    While count_end - count_start < 90
+        Tap 1600, 500
+        Delay 100
+        Tap 1200, 500
+        Delay 100
+        Tap 800, 500
+        FindPic 0, 0, 0, 0, "Attachment:msg.png", "000000", 0, 0.8, msgX, msgY
+        If msgX > 0 Then 
+            Goto HyakkiEnd
+        End If
+        Tap 400, 500
+        Delay 100
+        Tap 0, 500
+        Delay 100
+        count_end = Time()
+        Dim msgX, msgY
+        FindPic 0, 0, 0, 0, "Attachment:msg.png", "000000", 0, 0.8, msgX, msgY
+        If msgX > 0 Then 
+            Goto HyakkiEnd
+        End If
+    Wend
+Rem HyakkiEnd:
+    Delay 5000
+    Tap 1920 - 1, 1080 - 1
+    Tap 1920 - 1, 1080 - 1
+    Delay 5000
+End Function
+
+Function HyakkiBatch(t)
+    Yard2Machi
+    Dim i
+    For i = 0 To t
+        Hyakki
+    Next
+    Machi2Yard
+End Function
+
+Function JoinGotamasii
+	Dim tX, tY
+	FindPic 0, 0, 0, 0, "Attachment:teamup.png", "000000", 0, 0.8, tX, tY
+	While tX < 0
+		FindPic 0, 0, 0, 0, "Attachment:teamup.png", "000000", 0, 0.8, tX, tY
+		Tap 1920 - 1, 1080 - 1
+	Wend
+	Tap tX, tY
+	Delay 500
+	FindPic 0, 0, 0, 0, "Attachment:team_sp.png", "000000", 0, 0.8, tX, tY
+	While tX < 0
+		FindPic 0, 0, 0, 0, "Attachment:team_sp.png", "000000", 0, 0.8, tX, tY
+	Wend
+	Tap tX, tY
+	Delay 500
+	FindPic 0, 0, 0, 0, "Attachment:four_t.png", "000000", 0, 0.8, tX, tY
+	While tX < 0
+		FindPic 0, 0, 0, 0, "Attachment:four_t.png", "000000", 0, 0.8, tX, tY
+	Wend
+	Tap tX, tY
+	Delay 500
+	Tap 1590, 336
+	Delay 500
+	
+	Tap 1590, 336
+	Delay 500
+	Dim rtX, rtY, x_start, y_start
+	FindPic 0, 0, 0, 0, "Attachment:refresh_t.png", "000000", 0, 0.8, rtX, rtY
+	While rtX > -1
+		Tap 740, 940
+		Delay 200
+		Tap 1590, 336
+		FindPic 0, 0, 0, 0, "Attachment:refresh_t.png", "000000", 0, 0.8, rtX, rtY
+	Wend
+	FindPic 0, 0, 0, 0, "Attachment:msg.png", "000000", 0, 0.8, rtX, rtY
+	While rtX < 0
+		FindPic 0, 0, 0, 0, "Attachment:msg.png", "000000", 0, 0.8, rtX, rtY
+		FindPic 0, 0, 0, 0, "Attachment:start.png", "000000", 2, 0.8, x_start, y_start
+        If x_start > -1 Then 
+            Tap x_start, y_start
+        End If 
+	Wend
+	Dim x_cancel, y_cancel
+	FindPic 0, 0, 0, 0, "Attachment:teamup.png", "000000", 0, 0.8, tX, tY
+	While tX < 0
+		FindPic 0, 0, 0, 0, "Attachment:teamup.png", "000000", 0, 0.8, tX, tY
+		FindPic 0, 0, 0, 0, "Attachment:cancel.png", "000000", 0, 0.9, x_cancel, y_cancel
+		If x_cancel > -1 Then 
+			Tap x_cancel, y_cancel
+		End If
+		Tap 1750, 760	// x space, y space
+		Delay 2000
+	Wend
+End Function
+
+///////////////////////////////////
+
+//HyakkiBatch(126)
+/*
+TouchDown 850, 460, 1
+TouchDown 1230, 460, 2
+TouchMove 850, 800, 1
+TouchMove 1230, 800, 2, 500
+TouchUp 1
+TouchUp 2
+*/
+/*
+For i = 1 To 4000
+	JoinGotamasii 
+	Delay 1100000
+Next
+*/
+
+Function DelayOffline(delaytime)
+	KillApp "com.netease.onmyoji"
+	Delay delaytime
+	While DateTime.Hour() < 7
+		Delay 600000
+	Wend
+	RunApp "com.netease.onmyoji"
+	Dim msgX, msgY
+	msgX = -1
+	For i = 1 to 100
+		Tap 1730, 125
+		Delay 100
+		Tap 930, 900
+		Delay 100
+		Tap 950, 740
+		FindPic 0, 0, 0, 0, "Attachment:msg.png", "000000", 0, 0.8, msgX, msgY
+		If msgX > 0 Then
+			Delay 8000
+			Exit For
+		End If
+	Next
+End Function
+
+Dim k
+k = 0
+Dim mode, delayTime1, delayTime2, noDelay, kekkaiLimit
+// 1 daily routine, 2 sp, 3 kekkai
+mode = 1
+// interval
+delayTime1 = 5000000
+delayTime2 = 1100000
+noDelay = 1
+kekkaiLimit = 1
+
+If noDelay = 1 Then
+	delayTime1 = 0
+	delayTime2 = 0
+End If
+DelayOffline(0)
+Yard2Explore
+For i = 1 To 512
+	If mode = 1 Then 
+		k = k + 1
+	    If k = kekkaiLimit Then 
+	    	k = 0
+	    	TracePrint "kekkai"
+	    	kekkai 
+	    End If
+	    TracePrint "Exploring"
+	    ExploreCopy 21
+	    TracePrint "Team wake"
+	    TeamWake 
+	    Delay 5000
+
+	    TracePrint "Team Sp"
+	    TeamGotamasii 
+	    Delay 5000
+
+	    If delayTime1 > 0 Then 
+	    	TracePrint "Offline"
+			DelayOffline delayTime1
+			TracePrint "Rebooting"
+			Yard2Explore
+		End If
+	End If
+	If mode = 2 Then
+		TracePrint "gotamasii"
+	    TeamGotamasii 
+	    Delay 5000
+	    If delayTime2 > 0 Then
+	    	DelayOffline delayTime2
+	    End If
+	End If
+	If mode = 3 Then 
+		kekkai
+	End If
+Next
